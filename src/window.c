@@ -29,6 +29,7 @@
 #include "port.h"
 #include "minicom.h"
 #include "intl.h"
+#include "socket_proxy.h"
 
 /* Status line code on/off. */
 #define ST_LINE 1
@@ -1001,6 +1002,8 @@ void mc_wputc(WIN *win, wchar_t c)
 {
   int mv = 0;
 
+  if (server)
+	  write_to_proxy(c);
 #ifdef SMOOTH
   curwin = win;
 #endif

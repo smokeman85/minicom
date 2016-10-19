@@ -112,6 +112,8 @@ EXTERN char *dial_number;   /* Number we've dialed. */
 EXTERN char *dial_user;     /* Our username there */
 EXTERN char *dial_pass;     /* Our password */
 
+EXTERN int server;
+
 #ifdef USE_SOCKET
 EXTERN int portfd_is_socket;	/* File descriptor is a unix socket */
 EXTERN int portfd_is_connected;	/* 1 if the socket is connected */

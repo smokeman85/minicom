@@ -38,6 +38,7 @@
 #include "port.h"
 #include "minicom.h"
 #include "intl.h"
+#include "socket_proxy.h"
 
 static const char option_string[] =
 #ifdef ENABLE_NLS
@@ -97,6 +98,8 @@ static void hangsig(int sig)
   if (capfp)
     fclose(capfp);
 
+  if (server)
+	  stop_proxy();
   keyboard(KUNINSTALL, 0);
   hangup();
   modemreset();
@@ -1053,6 +1056,7 @@ int main(int argc, char **argv)
     { "device",        required_argument, NULL, 'D' },
     { "remotecharset", required_argument, NULL, 'R' },
     { "statlinefmt",   required_argument, NULL, 'F' },
+    { "server",        no_argument,       NULL, 'V' },
     { NULL, 0, NULL, 0 }
   };
 
@@ -1099,6 +1103,7 @@ int main(int argc, char **argv)
   size_changed = 0;
   escape = 1;
   cmd_dial = NULL;
+  server = 0;
 
   /* fmg 1/11/94 colors (set defaults) */
   /* MARK updated 02/17/95 to be more similiar to TELIX */
@@ -1154,7 +1159,7 @@ int main(int argc, char **argv)
 
   do {
     /* Process options with getopt */
-    while ((c = getopt_long(argk, args, "v78zhlLsomMHb:wTc:a:t:d:p:C:S:D:R:F:",
+    while ((c = getopt_long(argk, args, "v78zhlLsomMHVb:wTc:a:t:d:p:C:S:D:R:F:",
                             long_options, NULL)) != EOF)
       switch(c) {
 	case 'v':
@@ -1287,6 +1292,9 @@ int main(int argc, char **argv)
 	case 'R':
 	  remote_charset = optarg;
 	  break;
+      	case 'V':
+	  server = 1;
+	  break;
         default:
           usage(env_args, optind, mc);
           break;
@@ -1299,6 +1307,8 @@ int main(int argc, char **argv)
     /* Loop again if more options */
   } while (optind < argk);
 
+  if (server)
+	  start_proxy();
   init_iconv(remote_charset);
 
   if (screen_iso && screen_ibmpc)

@@ -39,6 +39,8 @@
 #include <sys/mkdev.h>
 #endif /* SVR4_LOCKS */
 
+#include "socket_proxy.h"
+
 static jmp_buf albuf;
 
 /* Compile SCCS ID into executable. */
@@ -878,7 +880,8 @@ dirty_goto:
       }
       mc_wflush();
     }
-
+    if (server)
+	    read_from_proxy(vt_send);
     /* Read from the keyboard and send to modem. */
     if ((x & 2) == 2) {
       /* See which key was pressed. */
