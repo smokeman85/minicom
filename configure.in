@@ -170,6 +170,7 @@ if test "x$found_termcap_h" != "x1"; then
 fi
 
 AC_CHECK_LIB(socket, socket)
+AC_CHECK_LIB(pthread, pthread_create, [PTHREAD_LIBS+=-lpthread])
 
 dnl Checks for header files.
 AC_HEADER_DIRENT
