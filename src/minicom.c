@@ -39,6 +39,7 @@
 #include "minicom.h"
 #include "intl.h"
 #include "socket_proxy.h"
+#include "scheme_inter.h"
 
 static const char option_string[] =
 #ifdef ENABLE_NLS
@@ -1684,6 +1685,9 @@ dirty_goto:
       case 'y': /* Paste file */
 	paste_file();
 	break;
+      case 'v':
+	     scheme_script_run();
+	     break;
       case EOF: /* Cannot read from stdin anymore, exit silently */
         quit = NORESET;
         break;
