@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <limits.h>
+#include <ctype.h>
 #include "minicom.h"
 #include "intl.h"
 #include "scheme_inter.h"
@@ -48,6 +49,15 @@ static void scheme_script_init(scheme *sc, char *init_file)
 	fclose(finit);
 }
 
+static void print_value(WIN *w, pointer value)
+{
+	if (is_string(value))
+		mc_wprintf(w, "%s\n", string_value(value));
+	else if (is_integer(value))
+		mc_wprintf(w, "%ld\n", ivalue(value));
+	else if (is_real(value))
+		mc_wprintf(w, "%f\n", rvalue(value));
+}
 
 void scheme_script_run()
 {
@@ -85,7 +95,6 @@ void scheme_script_run()
 		case 'A':
 			mc_wlocate(w, mbslen("A - script:") + 1, 1);
 			mc_wclreol(w);
-			scr_user[0] = 0;
 			mc_wgets(w, script, 32, 256);
 			break;
 		case '\r':
@@ -95,7 +104,7 @@ void scheme_script_run()
 				break;
 			}
 			scheme_load_string(&sc, script);
-			mc_wprintf(w, "%d\n", ivalue(sc.value));
+			print_value(w, sc.value);
 			mc_wredraw(w, 1);
 			break;	
 		}
