@@ -8,6 +8,8 @@
 #include "scheme-private.h"
 
 extern char *__progname;
+#define A_BUTTON_MSG "A - script:"
+#define WINDOW_MSG "Run scheme script (Return to run, ESC to stop)"
 
 static void debug(char *s, ...)
 {
@@ -49,14 +51,28 @@ static void scheme_script_init(scheme *sc, char *init_file)
 	fclose(finit);
 }
 
-static void print_value(WIN *w, pointer value)
+static void scheme_print_value(WIN *w, pointer value)
 {
+	mc_wlocate(w, 1, 6);
 	if (is_string(value))
-		mc_wprintf(w, "%s\n", string_value(value));
+		mc_wprintf(w, "Result: %s", string_value(value));
 	else if (is_integer(value))
-		mc_wprintf(w, "%ld\n", ivalue(value));
+		mc_wprintf(w, "Result: %ld", ivalue(value));
 	else if (is_real(value))
-		mc_wprintf(w, "%f\n", rvalue(value));
+		mc_wprintf(w, "Result: %f", rvalue(value));
+}
+
+static WIN * scheme_init_gui()
+{
+	WIN *w;
+
+	w = mc_wopen(10, 15, 70, 20, BDOUBLE, stdattr, mfcolor, mbcolor, 0, 0, 1);
+	mc_wtitle(w, TMID, WINDOW_MSG);
+	mc_wputs(w, "\n");
+	mc_wprintf(w, "%s %s\n", A_BUTTON_MSG, "");
+	mc_wredraw(w, 1);
+
+	return w;
 }
 
 void scheme_script_run()
@@ -73,17 +89,10 @@ void scheme_script_run()
 		return;
 
 	scheme_script_init(&sc, app_path);
-	
-	w = mc_wopen(10, 15, 70, 20, BDOUBLE, stdattr, mfcolor, mbcolor, 0, 0, 1);
-	mc_wtitle(w, TMID, "Run scheme script");
-	mc_wputs(w, "\n");
-	mc_wprintf(w, "%s %s\n", "A - script:", "");
-	mc_wlocate(w, 4, 5);
-	mc_wputs(w, "Return to run, ESC to stop");
-	mc_wredraw(w, 1);
 
+	w = scheme_init_gui();
 	while (!done) {
-		mc_wlocate(w, mbslen ("Return to run, ESC to stop") + 5, 5);
+	        mc_wlocate(w, mbslen(A_BUTTON_MSG) + 1, 1);
 		n = wxgetch();
 		if (islower(n))
 			n = toupper(n);
@@ -93,9 +102,8 @@ void scheme_script_run()
 			done = 1;
 			break;
 		case 'A':
-			mc_wlocate(w, mbslen("A - script:") + 1, 1);
-			mc_wclreol(w);
-			mc_wgets(w, script, 32, 256);
+			mc_wlocate(w, mbslen(A_BUTTON_MSG) + 1, 1);
+			mc_wgets(w, script, 256, sizeof(script));
 			break;
 		case '\r':
 		case '\n':
@@ -104,10 +112,10 @@ void scheme_script_run()
 				break;
 			}
 			scheme_load_string(&sc, script);
-			print_value(w, sc.value);
-			mc_wredraw(w, 1);
+			scheme_print_value(w, sc.value);
 			break;	
 		}
+		mc_wflush();
 	}
 
 	scheme_deinit(&sc);
