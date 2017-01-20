@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <ctype.h>
+#include <dirent.h>
 #include "minicom.h"
 #include "intl.h"
 #include "scheme_inter.h"
@@ -25,18 +26,41 @@ static void debug(char *s, ...)
 	write(2, lala, strlen(lala));
 }
 
-static void scheme_script_init(scheme *sc, char *init_file)
+static scheme_inter_load_script(scheme *sc, char *path)
 {
 	FILE *finit;
 
+	finit = fopen(path, "r");
+	scheme_load_file(sc, finit);
+	fclose(finit);
+}
+
+static void scheme_script_init(scheme *sc, char *init_file)
+{
 	scheme_init(sc);
 
 	scheme_set_input_port_file(sc, stdin);
 	scheme_set_output_port_file(sc, stdout);
 
-	finit = fopen(init_file, "r");
-	scheme_load_file(sc, finit);
-	fclose(finit);
+	scheme_inter_load_script(sc, init_file);
+}
+
+static void scheme_inter_load_all(scheme *sc)
+{
+	DIR           *d;
+	struct dirent *dir;
+	d = opendir(MINICOM_SCRIPT_PATH);
+	if (!d)
+		return;
+
+	while ((dir = readdir(d)) != NULL){
+		char path[PATH_MAX];
+		memset(path, 0, PATH_MAX);
+		strcpy(path, MINICOM_SCRIPT_PATH);
+		strcat(path, dir->d_name);
+		scheme_inter_load_script(sc, path);
+	}
+	closedir(d);
 }
 
 static void scheme_print_value(WIN *w, pointer value)
@@ -73,7 +97,7 @@ void scheme_script_run()
 	char script[256];
 
 	scheme_script_init(&sc, MINICOM_INIT_SCRIPT);
-
+	scheme_inter_load_all(&sc);
 	w = scheme_init_gui();
 	while (!done) {
 	        mc_wlocate(w, mbslen(A_BUTTON_MSG) + 1, 1);
