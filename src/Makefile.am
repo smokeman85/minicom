@@ -29,7 +29,7 @@ confdir = @MINICOM_CONFDIR@
 AM_CPPFLAGS = @CPPFLAGS@ -I$(top_srcdir)/lib -DCONFDIR=\"$(confdir)\" \
               -DLOCALEDIR=\"$(datadir)/locale\"
 
-minicom_LDADD = @LIBINTL@ $(LIBICONV) $(MINICOM_LIBPORT) $(LOCKDEV_LIBS) -lpthread
+minicom_LDADD = @LIBINTL@ $(LIBICONV) $(MINICOM_LIBPORT) $(LOCKDEV_LIBS) -lpthread -lguile
 minicom_keyserv_LDADD = @LIBINTL@ $(MINICOM_LIBPORT)
 runscript_LDADD = @LIBINTL@ $(MINICOM_LIBPORT)
 
