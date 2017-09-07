@@ -2,10 +2,11 @@
 #include <limits.h>
 #include <ctype.h>
 #include <dirent.h>
+#include <libguile.h>
+#include <guile/gh.h>
 #include "minicom.h"
 #include "intl.h"
 #include "repl.h"
-
 
 static WIN* init_repl()
 {
@@ -18,11 +19,23 @@ static WIN* init_repl()
 	return repl;
 }
 
+static void eval_guile(WIN *repl, char *script)
+{
+	SCM ret_val;
+
+	scm_init_guile();
+
+	ret_val = scm_c_eval_string(script);
+	mc_wprintf(repl, "\n> %d\n", scm_num2int(ret_val, 0, NULL ));
+}
+
 void run_repl(void)
 {
 	int done = 0, n;
 	WIN *repl;
+	char script[256];
 	
+	memset(script, 0, sizeof(script));
 	repl = init_repl();
 	
 	while (!done) {
@@ -35,9 +48,11 @@ void run_repl(void)
 			break;
 		case '\r':
 		case '\n':
-			mc_wprintf(repl, "\n");
+			eval_guile(repl, script);
+			memset(script, 0, sizeof(script));
 			break;
 		default:
+		        script[strlen(script)] = (char)n;
 			mc_wprintf(repl, "%c", (char)n);
 			break;
 		}
