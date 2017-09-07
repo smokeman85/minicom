@@ -19,6 +19,18 @@ static WIN* init_repl()
 	return repl;
 }
 
+static void print_scm(WIN *repl, SCM val)
+{
+	size_t len;
+
+	if (scm_is_integer(val))
+		mc_wprintf(repl, "\n> %d\n", scm_num2int(val, 0, NULL ));
+	else if (scm_is_string(val))
+		mc_wprintf(repl, "\n> %s\n", gh_scm2newstr(val, &len));
+	else
+		mc_wprintf(repl, "\n unknown\n");
+}
+
 static void eval_guile(WIN *repl, char *script)
 {
 	SCM ret_val;
@@ -26,7 +38,8 @@ static void eval_guile(WIN *repl, char *script)
 	scm_init_guile();
 
 	ret_val = scm_c_eval_string(script);
-	mc_wprintf(repl, "\n> %d\n", scm_num2int(ret_val, 0, NULL ));
+
+	print_scm(repl, ret_val);
 }
 
 void run_repl(void)
