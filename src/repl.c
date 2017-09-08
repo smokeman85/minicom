@@ -28,7 +28,16 @@ static void print_scm(WIN *repl, SCM val)
 	else if (scm_is_string(val))
 		mc_wprintf(repl, "\n> %s\n", gh_scm2newstr(val, &len));
 	else
-		mc_wprintf(repl, "\n unknown\n");
+		mc_wprintf(repl, "\n> unknown\n");
+}
+
+static SCM eval_string_catch_handler (const char *string, SCM key, SCM args)
+{
+	scm_write(key, scm_current_error_port());
+	scm_write(args, scm_current_error_port());
+	printf("scm_c_eval_string of \"%s\" failed", string); /* TODO: print to repl */
+
+	return SCM_BOOL_F;
 }
 
 static void eval_guile(WIN *repl, char *script)
@@ -37,7 +46,13 @@ static void eval_guile(WIN *repl, char *script)
 
 	scm_init_guile();
 
-	ret_val = scm_c_eval_string(script);
+	ret_val = scm_c_catch (SCM_BOOL_T,
+			       (scm_t_catch_body) scm_c_eval_string,
+			       (void *) script,
+			       (scm_t_catch_handler) eval_string_catch_handler,
+			       (void *) script,
+			       (scm_t_catch_handler) NULL,
+			       (void *) NULL);
 
 	print_scm(repl, ret_val);
 }
