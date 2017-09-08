@@ -8,6 +8,8 @@
 #include "intl.h"
 #include "repl.h"
 
+#define FUNC_SCHEME_SCRIPT "/etc/minicom/func.scm"
+
 static WIN* init_repl()
 {
 	WIN *repl;
@@ -40,11 +42,19 @@ static SCM eval_string_catch_handler (const char *string, SCM key, SCM args)
 	return SCM_BOOL_F;
 }
 
+static void load_scheme_func(WIN *repl)
+{
+	if (!access(FUNC_SCHEME_SCRIPT, F_OK) == -1) {
+		mc_wprintf(repl, "%s not found\n", FUNC_SCHEME_SCRIPT);
+		return;
+	}
+
+	scm_c_primitive_load(FUNC_SCHEME_SCRIPT);
+}
+
 static void eval_guile(WIN *repl, char *script)
 {
 	SCM ret_val;
-
-	scm_init_guile();
 
 	ret_val = scm_c_catch (SCM_BOOL_T,
 			       (scm_t_catch_body) scm_c_eval_string,
@@ -80,6 +90,9 @@ void run_repl(void)
 	
 	memset(script, 0, sizeof(script));
 	repl = init_repl();
+
+	scm_init_guile();
+	load_scheme_func(repl);
 	
 	while (!done) {
 		n = wxgetch();
