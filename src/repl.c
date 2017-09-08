@@ -57,6 +57,21 @@ static void eval_guile(WIN *repl, char *script)
 	print_scm(repl, ret_val);
 }
 
+static int check_brackets_balance(char *str)
+{
+	int i, count = 0;
+	int str_len = strlen(str);
+
+	for (i = 0; i <= str_len; i++) {
+		if (str[i] == '(')
+			count++;
+		else if (str[i] == ')')
+			count--;
+	}
+
+	return count;
+}
+
 void run_repl(void)
 {
 	int done = 0, n;
@@ -76,6 +91,10 @@ void run_repl(void)
 			break;
 		case '\r':
 		case '\n':
+			if (check_brackets_balance(script)) {
+				mc_wprintf(repl, "\n");
+				break;
+			}
 			eval_guile(repl, script);
 			memset(script, 0, sizeof(script));
 			break;
